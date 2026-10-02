@@ -10,12 +10,6 @@ from config.settings import settings
 from engine.models import ReconciliationSummary
 
 class ExcelReportGenerator:
-    """
-    Generates an executive-grade, multi-tab Excel Reconciliation Exception Report
-    with custom styling, summary KPI dashboards, categorized exception breakdowns,
-    data quality audit results, and embedded VBA automation instructions.
-    """
-
     NAVY_FILL = PatternFill(start_color="1F497D", end_color="1F497D", fill_type="solid")
     SLATE_FILL = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
     HEADER_FONT = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
@@ -24,7 +18,6 @@ class ExcelReportGenerator:
     CARD_TITLE_FONT = Font(name="Calibri", size=9, bold=True, color="595959")
     CARD_VALUE_FONT = Font(name="Calibri", size=16, bold=True, color="1F497D")
     
-    # Category Fills
     MISMATCH_FILL = PatternFill(start_color="FFF2CC", end_color="FFF2CC", fill_type="solid")
     MISSING_LEDGER_FILL = PatternFill(start_color="FCE4D6", end_color="FCE4D6", fill_type="solid")
     MISSING_BANK_FILL = PatternFill(start_color="F8CBAD", end_color="F8CBAD", fill_type="solid")
@@ -44,39 +37,29 @@ class ExcelReportGenerator:
         summary: ReconciliationSummary,
         output_filepath: Path = None
     ) -> Path:
-        """
-        Creates and styles the complete Excel exception report.
-        """
         if output_filepath is None:
             filename = f"Reconciliation_Report_{summary.batch_id}.xlsx"
             output_filepath = settings.OUTPUT_DATA_DIR / filename
 
         output_filepath = Path(output_filepath)
         wb = openpyxl.Workbook()
-        # Remove default sheet
         wb.remove(wb.active)
 
-        # 1. Executive Dashboard
         ws_dash = wb.create_sheet(title="Executive Dashboard")
         cls._build_dashboard(ws_dash, summary)
 
-        # 2. Exceptions Breakdown
         ws_ex = wb.create_sheet(title="Exceptions Breakdown")
         cls._build_exceptions_sheet(ws_ex, summary.df_exceptions)
 
-        # 3. Matched Records (sample top 5,000 for fast workbook rendering)
         ws_match = wb.create_sheet(title="Matched Records")
         cls._build_matched_sheet(ws_match, summary.df_matched)
 
-        # 4. Data Quality Audit
         ws_dq = wb.create_sheet(title="Data Quality Audit")
         cls._build_dq_sheet(ws_dq, summary.dq_results)
 
-        # 5. VBA Automation Helper
         ws_vba = wb.create_sheet(title="VBA Automation & Macro")
         cls._build_vba_info_sheet(ws_vba)
 
-        # Auto-adjust column widths across all sheets
         for sheet in wb.worksheets:
             cls._autofit_columns(sheet)
 
@@ -88,7 +71,6 @@ class ExcelReportGenerator:
     def _build_dashboard(cls, ws, summary: ReconciliationSummary):
         ws.views.sheetView[0].showGridLines = True
 
-        # Header Title
         ws.merge_cells("A2:H2")
         ws["A2"] = "AUTOMATED TRANSACTION RECONCILIATION DASHBOARD"
         ws["A2"].font = cls.TITLE_FONT
@@ -98,7 +80,6 @@ class ExcelReportGenerator:
         ws["A3"] = f"Batch ID: {summary.batch_id} | Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | Execution Time: {summary.execution_duration_sec:.2f}s"
         ws["A3"].font = cls.SUBTITLE_FONT
 
-        # KPI Summary Cards in Rows 5-7
         kpis = [
             ("TOTAL TRANSACTIONS", f"{summary.total_bank_records + summary.total_ledger_records:,}", "A", "B"),
             ("MATCH RATE", f"{(summary.total_matched / max(1, (summary.total_matched + summary.total_unmatched))) * 100:.1f}%", "C", "D"),
@@ -122,12 +103,10 @@ class ExcelReportGenerator:
             ws[f"{c_start}6"].alignment = Alignment(horizontal="center", vertical="center")
             ws[f"{c_start}6"].fill = PatternFill(start_color="FFFFFF", fill_type="solid")
 
-            # Border
             for r in range(5, 8):
                 for c in [openpyxl.utils.column_index_from_string(c_start), openpyxl.utils.column_index_from_string(c_end)]:
                     ws.cell(row=r, column=c).border = cls.THIN_BORDER
 
-        # Reconciliation Summary Breakdown Table (Row 10+)
         headers = ["Reconciliation Metric", "Count", "Percentage", "Status / Classification"]
         ws.row_dimensions[10].height = 24
         for col_idx, h in enumerate(headers, start=2):
@@ -169,7 +148,6 @@ class ExcelReportGenerator:
                 ws.cell(row=curr_r, column=c).border = cls.THIN_BORDER
             curr_r += 1
 
-        # Control Totals Section (Row curr_r + 2)
         curr_r += 2
         ws.merge_cells(f"B{curr_r}:E{curr_r}")
         ws[f"B{curr_r}"] = "FINANCIAL CONTROL TOTALS & CHECKSUM"
@@ -265,7 +243,6 @@ class ExcelReportGenerator:
             cell.fill = cls.SLATE_FILL
             cell.alignment = Alignment(horizontal="center", vertical="center")
 
-        # Display sample for quick workbook responsiveness (up to 10,000)
         display_df = df_matched.head(10000)
         for r_idx, row in display_df.iterrows():
             curr_r = r_idx + 2
@@ -355,7 +332,6 @@ class ExcelReportGenerator:
             for cell in col:
                 if cell.value:
                     val_str = str(cell.value)
-                    # Limit multi-line cell width calculation
                     lines = val_str.split("\n")
                     longest_line = max(len(l) for l in lines)
                     max_len = max(max_len, longest_line)

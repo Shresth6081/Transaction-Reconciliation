@@ -7,29 +7,15 @@ from engine.models import DQCheckResult
 logger = logging.getLogger("DataValidator")
 
 class DataQualityValidator:
-    """
-    Performs comprehensive data hygiene and integrity checks:
-    - Null / Missing field validations
-    - Duplicate Reference ID detection
-    - Data format normalization (Dates, Numeric Amounts)
-    - Control total reconciliation checksums
-    """
-
     @staticmethod
     def validate_and_clean(
         df_bank_raw: pd.DataFrame,
         df_ledger_raw: pd.DataFrame
     ) -> Tuple[pd.DataFrame, pd.DataFrame, List[DQCheckResult], Dict[str, float]]:
-        """
-        Validates, sanitizes, and computes control totals for Bank and Ledger datasets.
-        """
         dq_results: List[DQCheckResult] = []
         df_bank = df_bank_raw.copy()
         df_ledger = df_ledger_raw.copy()
 
-        # -------------------------------------------------------------
-        # 1. Null / Missing Checks
-        # -------------------------------------------------------------
         bank_nulls = df_bank[["reference_id", "amount", "transaction_date"]].isnull().sum().to_dict()
         ledger_nulls = df_ledger[["reference_id", "amount", "posting_date"]].isnull().sum().to_dict()
 
@@ -70,13 +56,9 @@ class DataQualityValidator:
                 details="Zero nulls found in critical fields (reference_id, amount, posting_date)."
             ))
 
-        # Drop any completely unidentifiable records with null reference_id
         df_bank = df_bank.dropna(subset=["reference_id", "amount"])
         df_ledger = df_ledger.dropna(subset=["reference_id", "amount"])
 
-        # -------------------------------------------------------------
-        # 2. Type Standardizations & Date Parsing
-        # -------------------------------------------------------------
         df_bank["reference_id"] = df_bank["reference_id"].astype(str).str.strip()
         df_ledger["reference_id"] = df_ledger["reference_id"].astype(str).str.strip()
 
@@ -86,9 +68,6 @@ class DataQualityValidator:
         df_bank["transaction_date"] = pd.to_datetime(df_bank["transaction_date"], errors="coerce")
         df_ledger["posting_date"] = pd.to_datetime(df_ledger["posting_date"], errors="coerce")
 
-        # -------------------------------------------------------------
-        # 3. Duplicate ID Checks
-        # -------------------------------------------------------------
         bank_dupes_count = int(df_bank.duplicated(subset=["reference_id"], keep=False).sum())
         ledger_dupes_count = int(df_ledger.duplicated(subset=["reference_id"], keep=False).sum())
 
@@ -126,9 +105,6 @@ class DataQualityValidator:
                 details="All ledger reference IDs are unique."
             ))
 
-        # -------------------------------------------------------------
-        # 4. Control Totals & Checksums
-        # -------------------------------------------------------------
         bank_total_sum = float(df_bank["amount"].sum())
         ledger_total_sum = float(df_ledger["amount"].sum())
         control_variance = bank_total_sum - ledger_total_sum

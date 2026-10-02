@@ -29,10 +29,8 @@ def test_database_logging(tmp_path):
         "report_file_path": "/path/to/report.xlsx"
     }
 
-    # Save summary
     db.save_batch_summary(summary_data)
 
-    # Save exceptions
     df_ex = pd.DataFrame([
         {
             "reference_id": "TXN-TEST-1",
@@ -47,7 +45,6 @@ def test_database_logging(tmp_path):
     ])
     db.save_exceptions(batch_id, df_ex)
 
-    # Fetch history
     history = db.fetch_batch_history(limit=5)
     assert not history.empty
     assert history.iloc[0]["batch_id"] == batch_id

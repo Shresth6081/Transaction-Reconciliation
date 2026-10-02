@@ -7,7 +7,7 @@ import pandas as pd
 class DQCheckResult:
     source_name: str
     check_name: str
-    check_status: str  # "PASSED", "WARNING", "FAILED"
+    check_status: str
     records_affected: int
     details: str
 

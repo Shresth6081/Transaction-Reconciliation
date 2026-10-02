@@ -1,19 +1,8 @@
 Attribute VB_Name = "ReconciliationAutomation"
-' =========================================================================================
-' Financial Transaction Reconciliation - Automated Exception Analysis Macro
-' Author: Automation Pipeline
-' Purpose: Cuts manual reconciliation review time from 30+ minutes to under 10 seconds.
-' Features:
-'   - 1-Click Interactive Category Filtering (Missing, Mismatch, Duplicates)
-'   - Instant High-Variance Highlighting (> $1,000 in red)
-'   - Automated KPI Dashboard Metric Calculations
-'   - Resolution Export Helper
-' =========================================================================================
 
 Option Explicit
 
 Sub RunQuickReconciliationAudit()
-    ' Main entry point: Executes 10-second fast audit workflow
     Dim startTime As Double
     startTime = Timer
 
@@ -36,7 +25,6 @@ Sub RunQuickReconciliationAudit()
 End Sub
 
 Sub ApplyExceptionColorHighlighting()
-    ' Highlights exception categories and high variance amounts
     Dim ws As Worksheet
     On Error Resume Next
     Set ws = ThisWorkbook.Sheets("Exceptions Breakdown")
@@ -56,26 +44,24 @@ Sub ApplyExceptionColorHighlighting()
         category = Trim(UCase(ws.Cells(r, 2).Value))
         amtDiff = Abs(Val(ws.Cells(r, 7).Value))
 
-        ' Category Badge Color Coding
         Select Case category
             Case "AMOUNT_MISMATCH"
-                ws.Cells(r, 2).Interior.Color = RGB(255, 235, 156) ' Soft Yellow
+                ws.Cells(r, 2).Interior.Color = RGB(255, 235, 156)
                 ws.Cells(r, 2).Font.Color = RGB(156, 101, 0)
             Case "MISSING_IN_LEDGER"
-                ws.Cells(r, 2).Interior.Color = RGB(255, 199, 206) ' Soft Red
+                ws.Cells(r, 2).Interior.Color = RGB(255, 199, 206)
                 ws.Cells(r, 2).Font.Color = RGB(156, 0, 6)
             Case "MISSING_IN_BANK"
-                ws.Cells(r, 2).Interior.Color = RGB(252, 228, 214) ' Soft Orange
+                ws.Cells(r, 2).Interior.Color = RGB(252, 228, 214)
                 ws.Cells(r, 2).Font.Color = RGB(198, 89, 17)
             Case "DUPLICATE_IN_BANK", "DUPLICATE_IN_LEDGER"
-                ws.Cells(r, 2).Interior.Color = RGB(235, 220, 245) ' Soft Purple
+                ws.Cells(r, 2).Interior.Color = RGB(235, 220, 245)
                 ws.Cells(r, 2).Font.Color = RGB(96, 38, 158)
             Case Else
-                ws.Cells(r, 2).Interior.Color = RGB(220, 230, 242) ' Soft Blue
+                ws.Cells(r, 2).Interior.Color = RGB(220, 230, 242)
                 ws.Cells(r, 2).Font.Color = RGB(30, 70, 120)
         End Select
 
-        ' High variance flag in red
         If amtDiff >= 1000# Then
             ws.Cells(r, 7).Font.Bold = True
             ws.Cells(r, 7).Interior.Color = RGB(255, 180, 180)

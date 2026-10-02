@@ -20,7 +20,6 @@ def test_exact_match(reconciler):
     assert summary.total_unmatched == 0
 
 def test_date_tolerance_match(reconciler):
-    # Bank clears 2 days after ledger posting (within 3 days tolerance)
     df_bank = pd.DataFrame([
         {"reference_id": "TXN-TOL-1", "amount": 800.00, "transaction_date": "2026-03-17", "description": "ACH Clear"}
     ])

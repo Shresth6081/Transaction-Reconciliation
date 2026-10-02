@@ -1,12 +1,6 @@
--- ==========================================================
--- Transaction Reconciliation Automation - MySQL Schema
--- Audit Trail, Batch Runs, Discrepancies, and Control Totals
--- ==========================================================
-
 CREATE DATABASE IF NOT EXISTS reconciliation_db;
 USE reconciliation_db;
 
--- 1. Batch Runs Table (Audit log for each reconciliation run)
 CREATE TABLE IF NOT EXISTS reconciliation_batches (
     batch_id VARCHAR(64) PRIMARY KEY,
     run_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -28,7 +22,6 @@ CREATE TABLE IF NOT EXISTS reconciliation_batches (
     report_file_path VARCHAR(255)
 );
 
--- 2. Discrepancy & Exception Details (Detailed breakdown for audit & resolution)
 CREATE TABLE IF NOT EXISTS reconciliation_exceptions (
     exception_id INT AUTO_INCREMENT PRIMARY KEY,
     batch_id VARCHAR(64) NOT NULL,
@@ -49,7 +42,6 @@ CREATE TABLE IF NOT EXISTS reconciliation_exceptions (
     INDEX idx_ref (reference_id)
 );
 
--- 3. Data Quality Audit Log (Null checks, duplicate reference checks, control totals)
 CREATE TABLE IF NOT EXISTS dq_audit_logs (
     log_id INT AUTO_INCREMENT PRIMARY KEY,
     batch_id VARCHAR(64) NOT NULL,

@@ -5,7 +5,7 @@ from engine.validator import DataQualityValidator
 def test_null_value_check():
     df_bank = pd.DataFrame([
         {"reference_id": "TXN-001", "amount": 100.0, "transaction_date": "2026-01-01"},
-        {"reference_id": None, "amount": 200.0, "transaction_date": "2026-01-02"}, # Null ID
+        {"reference_id": None, "amount": 200.0, "transaction_date": "2026-01-02"},
     ])
     df_ledger = pd.DataFrame([
         {"reference_id": "TXN-001", "amount": 100.0, "posting_date": "2026-01-01"},
@@ -13,9 +13,7 @@ def test_null_value_check():
 
     clean_bank, clean_ledger, dq_results, totals = DataQualityValidator.validate_and_clean(df_bank, df_ledger)
 
-    # Null record dropped from active matching
     assert len(clean_bank) == 1
-    # Check warning was logged
     null_dq = [r for r in dq_results if r.check_name == "NULL_VALUE_CHECK" and r.source_name == "BANK"]
     assert len(null_dq) == 1
     assert null_dq[0].check_status == "WARNING"

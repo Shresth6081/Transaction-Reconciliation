@@ -24,16 +24,12 @@ def run_reconciliation_pipeline(
     generate_sample_count: int = 50000,
     force_generate: bool = False
 ):
-    """
-    End-to-End Transaction Reconciliation Pipeline
-    """
     console.print(Panel.fit(
         "[bold cyan]AUTOMATED TRANSACTION RECONCILIATION SYSTEM[/bold cyan]\n"
         "[dim]High-Performance Matching | Exception Classification | MySQL Audit Trail | Excel VBA[/dim]",
         border_style="cyan"
     ))
 
-    # 1. Dataset verification or generation
     bank_file = bank_csv_path or (settings.RAW_DATA_DIR / "bank_transactions.csv")
     ledger_file = ledger_csv_path or (settings.RAW_DATA_DIR / "ledger_transactions.csv")
 
@@ -44,7 +40,6 @@ def run_reconciliation_pipeline(
             output_dir=settings.RAW_DATA_DIR
         )
 
-    # 2. Ingest Data Feeds
     console.print(f"[bold green][OK] Loading transaction feeds...[/bold green]")
     t_read_start = time.time()
     df_bank = pd.read_csv(bank_file)
@@ -53,7 +48,6 @@ def run_reconciliation_pipeline(
     console.print(f"  * General Ledger Records:   [cyan]{len(df_ledger):,}[/cyan]")
     console.print(f"  * Total Volume:             [cyan]{len(df_bank) + len(df_ledger):,}[/cyan] transactions loaded in {time.time() - t_read_start:.2f}s")
 
-    # 3. Execute Reconciliation Engine
     console.print("\n[bold yellow]>> Executing Reconciliation Engine (Exact + Tolerance Matching)...[/bold yellow]")
     engine = ReconciliationEngine(
         date_tolerance_days=settings.DATE_TOLERANCE_DAYS,
@@ -62,12 +56,10 @@ def run_reconciliation_pipeline(
     
     summary = engine.reconcile(df_bank, df_ledger)
 
-    # 4. Generate Excel Report
     console.print("\n[bold yellow]>> Generating Styled Multi-Tab Excel Exception Report...[/bold yellow]")
     report_path = ExcelReportGenerator.generate_report(summary)
     console.print(f"  * Excel Report created: {report_path.name}")
 
-    # 5. Store in Database Audit Trail
     console.print("\n[bold yellow]>> Persisting Audit Trail to Database...[/bold yellow]")
     db = DatabaseManager()
     db.save_batch_summary(summary.to_dict())
@@ -77,8 +69,6 @@ def run_reconciliation_pipeline(
         db.save_dq_logs(summary.batch_id, [res.__dict__ for res in summary.dq_results])
     console.print(f"  * Run results and {len(summary.df_exceptions):,} exceptions saved to audit database successfully.")
 
-
-    # 6. Display Executive Summary Table
     print_terminal_summary(summary, report_path)
 
 def print_terminal_summary(summary, report_path: Path):
@@ -98,7 +88,6 @@ def print_terminal_summary(summary, report_path: Path):
     
     console.print(table)
 
-    # Financial Control Totals Panel
     ctrl_text = (
         f"[bold]Bank Control Total:[/bold]   ${summary.bank_control_total:,.2f}\n"
         f"[bold]Ledger Control Total:[/bold] ${summary.ledger_control_total:,.2f}\n"
@@ -107,7 +96,6 @@ def print_terminal_summary(summary, report_path: Path):
         f"[bold]Excel Exception File:[/bold]  {report_path}"
     )
     console.print(Panel(ctrl_text, title="[bold green]Financial Integrity & Control Totals[/bold green]", border_style="green"))
-
 
 def main():
     parser = argparse.ArgumentParser(description="Transaction Reconciliation Automation Engine")

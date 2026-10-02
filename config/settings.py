@@ -7,12 +7,10 @@ class Settings(BaseSettings):
     RAW_DATA_DIR: Path = PROJECT_ROOT / "data" / "raw"
     OUTPUT_DATA_DIR: Path = PROJECT_ROOT / "data" / "output"
     
-    # Reconciliation Matching Settings
-    DATE_TOLERANCE_DAYS: int = 3       # Bank settlement timing delay tolerance (+/- days)
-    AMOUNT_TOLERANCE: float = 0.00     # Strict amount tolerance (0.00 = exact currency match)
+    DATE_TOLERANCE_DAYS: int = 3
+    AMOUNT_TOLERANCE: float = 0.00
     
-    # Database Settings (MySQL with SQLite local fallback)
-    DB_TYPE: str = "sqlite"            # "mysql" or "sqlite"
+    DB_TYPE: str = "sqlite"
     MYSQL_HOST: str = "localhost"
     MYSQL_PORT: int = 3306
     MYSQL_USER: str = "root"
@@ -20,7 +18,6 @@ class Settings(BaseSettings):
     MYSQL_DB: str = "reconciliation_db"
     SQLITE_PATH: Path = PROJECT_ROOT / "data" / "reconciliation_audit.db"
     
-    # Performance & Batch Settings
     CHUNK_SIZE: int = 50000
     LOG_LEVEL: str = "INFO"
 
@@ -32,6 +29,5 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Ensure directories exist
 settings.RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
 settings.OUTPUT_DATA_DIR.mkdir(parents=True, exist_ok=True)

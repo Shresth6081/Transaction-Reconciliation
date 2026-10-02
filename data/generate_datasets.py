@@ -22,10 +22,6 @@ def generate_transaction_datasets(
     missing_in_bank_ratio: float = 0.02,
     duplicate_ratio: float = 0.005
 ):
-    """
-    Generates synthetic 50,000+ Bank and General Ledger datasets with realistic
-    reconciliation challenges (timing differences, amount typos, missing records, duplicates).
-    """
     if output_dir is None:
         from config.settings import settings
         output_dir = settings.RAW_DATA_DIR
@@ -64,17 +60,14 @@ def generate_transaction_datasets(
 
     tx_types = ["DEBIT", "CREDIT"]
 
-    # Helper to generate random timestamp
     def rand_date():
         return start_date + timedelta(days=random.randint(0, date_range_days), hours=random.randint(8, 18), minutes=random.randint(0, 59))
 
-    # Helper to format reference ID
     def make_ref_id(idx):
         return f"TXN-2026-{idx:07d}"
 
     current_idx = 1000000
 
-    # 1. Exact Matches (Ref ID, Amount, and Date match)
     for _ in range(num_exact):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
@@ -105,12 +98,10 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # 2. Date Shifted Matches (Bank clearance delayed by 1 to 3 days within tolerance)
     for _ in range(num_shifted):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
         ledger_dt = rand_date()
-        # Delay bank date by 1 to 3 days
         day_offset = random.choice([-2, -1, 1, 2, 3])
         bank_dt = ledger_dt + timedelta(days=day_offset)
         amt = round(random.uniform(50.00, 85000.00), 2)
@@ -139,13 +130,11 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # 3. Amount Mismatch (Same Ref ID, different amounts due to bank fee, forex, or manual typo)
     for _ in range(num_amount_diff):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
         dt = rand_date()
         base_amt = round(random.uniform(100.00, 50000.00), 2)
-        # Bank amount has fee or typo (e.g. +/- $5 to $150 or decimal transposition)
         diff = round(random.choice([-150.00, -25.50, -10.00, 12.00, 45.75, 100.00]), 2)
         bank_amt = max(1.0, round(base_amt + diff, 2))
         desc = random.choice(descriptions)
@@ -173,7 +162,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # 4. Missing in Ledger (Bank has entry, ledger missing -> bank fee, direct deposit, unrecorded wire)
     for _ in range(num_missing_ledger):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
@@ -193,7 +181,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # 5. Missing in Bank (Ledger has entry, bank missing -> outstanding check, unpresented draft)
     for _ in range(num_missing_bank):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
@@ -213,7 +200,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # 6. Duplicates (Duplicate entries in Ledger or Bank)
     for _ in range(num_duplicates):
         ref_id = make_ref_id(current_idx)
         current_idx += 1
@@ -222,7 +208,6 @@ def generate_transaction_datasets(
         desc = "Duplicate Vendor Invoice Submission"
         ttype = "DEBIT"
 
-        # Bank has 1 entry, Ledger accidentally posted twice
         bank_rows.append({
             "bank_tx_id": f"BNK-{uuid.uuid4().hex[:8].upper()}",
             "reference_id": ref_id,
@@ -234,7 +219,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-        # Entry 1
         ledger_rows.append({
             "ledger_entry_id": f"GL-{uuid.uuid4().hex[:8].upper()}",
             "reference_id": ref_id,
@@ -246,7 +230,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-        # Duplicate Entry 2
         ledger_rows.append({
             "ledger_entry_id": f"GL-{uuid.uuid4().hex[:8].upper()}",
             "reference_id": ref_id,
@@ -258,7 +241,6 @@ def generate_transaction_datasets(
             "currency": "USD"
         })
 
-    # Shuffle datasets to simulate realistic unsorted transaction feeds
     random.shuffle(bank_rows)
     random.shuffle(ledger_rows)
 
