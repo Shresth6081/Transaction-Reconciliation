@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.env
+
+# Data & Output (optional if user wants to keep repo clean)
+data/output/*.xlsx
+data/output/*.xlsm
+*.db
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
